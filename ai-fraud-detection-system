@@ -1,0 +1,53 @@
+# Importing necessary libraries
+import pandas as pd
+import numpy as np
+from sklearn.model_selection import train_test_split
+from sklearn.ensemble import RandomForestClassifier
+from sklearn.metrics import classification_report, accuracy_score
+from sklearn.preprocessing import StandardScaler
+
+# Load the dataset (Assuming a CSV file with features such as transaction amount, time, etc.)
+# Replace 'fraud_data.csv' with your dataset file
+df = pd.read_csv('fraud_data.csv')
+
+# Display first few rows of the dataset to understand its structure
+print(df.head())
+
+# Preprocessing: Handle missing values
+df.fillna(df.mean(), inplace=True)
+
+# Feature engineering: Selecting the features (assuming 'is_fraud' is the target column)
+# Select numerical features (you can also encode categorical variables as needed)
+features = df.drop('is_fraud', axis=1)  # Dropping target column 'is_fraud'
+target = df['is_fraud']  # 'is_fraud' is the label for fraudulent transactions (0 or 1)
+
+# Feature scaling: It's a good practice to scale numerical features for better model performance
+scaler = StandardScaler()
+features_scaled = scaler.fit_transform(features)
+
+# Splitting the data into training and testing sets (80% train, 20% test)
+X_train, X_test, y_train, y_test = train_test_split(features_scaled, target, test_size=0.2, random_state=42)
+
+# Initialize the Random Forest classifier
+clf = RandomForestClassifier(n_estimators=100, random_state=42)
+
+# Train the model
+clf.fit(X_train, y_train)
+
+# Predict on the test set
+y_pred = clf.predict(X_test)
+
+# Evaluate the model
+print("Accuracy:", accuracy_score(y_test, y_pred))
+print("\nClassification Report:")
+print(classification_report(y_test, y_pred))
+
+# Saving the model for future use
+import joblib
+joblib.dump(clf, 'fraud_detection_model.pkl')
+
+# Example: Predicting a new transaction (you will need to pass the actual features)
+new_transaction = np.array([[1200.0, 100, 45, 3]])  # Example values (modify as per dataset)
+new_transaction_scaled = scaler.transform(new_transaction)
+prediction = clf.predict(new_transaction_scaled)
+print("Is this transaction fraudulent? ", "Yes" if prediction[0] == 1 else "No")
